@@ -1,0 +1,91 @@
+const SUPABASE_URL = "https://fnmfclvplcmymbzofvef.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_2Nf7DTmz7fO-GZCcyJBZlQ_ZV7WSJOj";
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentAdmin = null;
+
+document.getElementById("adminLoginForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const adminId = document.getElementById("adminId").value.trim();
+  const adminPassword = document.getElementById("adminPassword").value.trim();
+  const statusEl = document.getElementById("adminLoginStatus");
+
+  if (!adminId || !adminPassword) {
+    alert("관리자 아이디와 비밀번호를 입력하세요.");
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("admin_accounts")
+    .select("*")
+    .eq("admin_id", adminId)
+    .eq("password", adminPassword)
+    .eq("is_active", true)
+    .limit(1);
+
+  if (error) {
+    console.error(error);
+    statusEl.textContent = "로그인 중 오류가 발생했습니다.";
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    statusEl.textContent = "아이디 또는 비밀번호가 올바르지 않습니다.";
+    return;
+  }
+
+  currentAdmin = data[0];
+  statusEl.textContent = `${currentAdmin.name} 관리자 로그인 완료`;
+});
+
+document.getElementById("loadAllComplaintsBtn").addEventListener("click", async function () {
+  if (!currentAdmin) {
+    alert("먼저 관리자 로그인하세요.");
+    return;
+  }
+
+  const listEl = document.getElementById("adminComplaintsList");
+  listEl.innerHTML = '<p class="help">불러오는 중...</p>';
+
+  const { data, error } = await supabaseClient
+    .from("complaints")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    listEl.innerHTML = '<p class="help">전체 접수내역을 불러오는 중 오류가 발생했습니다.</p>';
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    listEl.innerHTML = '<p class="help">접수된 내역이 없습니다.</p>';
+    return;
+  }
+
+  listEl.innerHTML = data.map(item => {
+    const createdAt = item.created_at
+      ? new Date(item.created_at).toLocaleString("ko-KR")
+      : "-";
+
+    const submissionTypeText =
+      item.submission_type === "anonymous_report" ? "익명 제보" : "일반 고충";
+
+    return `
+      <div class="complaint-item">
+        <h3>${item.title || ""}</h3>
+        <div class="complaint-meta">
+          <span>구분: ${submissionTypeText}</span>
+          <span>유형: ${item.category || "-"}</span>
+          <span>상태: ${item.status || "-"}</span>
+          <span>접수일시: ${createdAt}</span>
+          <span>작성자ID: ${item.user_id || "익명"}</span>
+        </div>
+        <p class="complaint-content">${item.content || ""}</p>
+        ${item.admin_comment ? `<p class="complaint-content"><strong>관리자 의견:</strong> ${item.admin_comment}</p>` : ""}
+      </div>
+    `;
+  }).join("");
+});
