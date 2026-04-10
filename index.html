@@ -58,7 +58,33 @@
           <button type="submit">접수하기</button>
         </form>
       </section>
+      <section class="card">
+        <h2>익명 공익 · 윤리 제보</h2>
+        <form id="anonymousReportForm">
+          <label>제보 유형</label>
+          <select id="reportCategory">
+            <option value="">선택</option>
+            <option>공익제보</option>
+            <option>윤리제보</option>
+            <option>직장 내 괴롭힘</option>
+            <option>성희롱·성폭력</option>
+            <option>부당지시</option>
+            <option>비위신고</option>
+            <option>기타</option>
+          </select>
 
+          <label>제목</label>
+          <input type="text" id="reportTitle" placeholder="제목 입력" />
+
+          <label>내용</label>
+          <textarea id="reportContent" rows="6" placeholder="익명 제보 내용을 입력하세요"></textarea>
+
+          <button type="submit">익명 제보 접수</button>
+        </form>
+        <p class="help">
+          익명 제보는 일반 직원 화면에 공개되지 않으며 관리자만 확인할 수 있습니다.
+        </p>
+      </section>
       <section class="card full">
         <h2>처리 상태 안내</h2>
         <div class="status-list">
