@@ -1,5 +1,5 @@
 const SUPABASE_URL = "https://fnmfclvplcmymbzofvef.supabase.co";
-const SUPABASE_ANON_KEY = "여기에_네_Publishable_key_그대로_붙여넣기";
+const SUPABASE_ANON_KEY = "sb_publishable_2Nf7DTmz7fO-GZCcyJBZlQ_ZV7WSJOj";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
