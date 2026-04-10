@@ -49,29 +49,57 @@ document.getElementById("loadAllComplaintsBtn").addEventListener("click", async 
   const listEl = document.getElementById("adminComplaintsList");
   listEl.innerHTML = '<p class="help">불러오는 중...</p>';
 
-  const { data, error } = await supabaseClient
+  const { data: complaints, error: complaintsError } = await supabaseClient
     .from("complaints")
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error(error);
+  if (complaintsError) {
+    console.error(complaintsError);
     listEl.innerHTML = '<p class="help">전체 접수내역을 불러오는 중 오류가 발생했습니다.</p>';
     return;
   }
 
-  if (!data || data.length === 0) {
+  if (!complaints || complaints.length === 0) {
     listEl.innerHTML = '<p class="help">접수된 내역이 없습니다.</p>';
     return;
   }
 
-  listEl.innerHTML = data.map(item => {
+  const userIds = [...new Set(
+    complaints
+      .map(item => item.user_id)
+      .filter(Boolean)
+  )];
+
+  let profileMap = {};
+
+  if (userIds.length > 0) {
+    const { data: profiles, error: profilesError } = await supabaseClient
+      .from("profiles")
+      .select("id, name")
+      .in("id", userIds);
+
+    if (profilesError) {
+      console.error(profilesError);
+    } else {
+      profileMap = Object.fromEntries(
+        profiles.map(profile => [profile.id, profile.name])
+      );
+    }
+  }
+
+  listEl.innerHTML = complaints.map(item => {
     const createdAt = item.created_at
       ? new Date(item.created_at).toLocaleString("ko-KR")
       : "-";
 
     const submissionTypeText =
       item.submission_type === "anonymous_report" ? "익명 제보" : "일반 고충";
+
+    const writerName =
+      item.submission_type === "anonymous_report"
+        ? "익명"
+        : (profileMap[item.user_id] || "이름확인불가");
 
     return `
       <div class="complaint-item">
@@ -81,7 +109,7 @@ document.getElementById("loadAllComplaintsBtn").addEventListener("click", async 
           <span>유형: ${item.category || "-"}</span>
           <span>상태: ${item.status || "-"}</span>
           <span>접수일시: ${createdAt}</span>
-          <span>작성자ID: ${item.user_id || "익명"}</span>
+          <span>작성자: ${writerName}</span>
         </div>
         <p class="complaint-content">${item.content || ""}</p>
         ${item.admin_comment ? `<p class="complaint-content"><strong>관리자 의견:</strong> ${item.admin_comment}</p>` : ""}
