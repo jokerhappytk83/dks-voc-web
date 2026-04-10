@@ -134,3 +134,44 @@ button:hover {
     font-size: 28px;
   }
 }
+.complaint-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.complaint-item {
+  border: 1px solid #dbe2ea;
+  border-radius: 12px;
+  padding: 16px;
+  background: #f8fafc;
+}
+
+.complaint-item h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #0f172a;
+}
+
+.complaint-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.complaint-meta span {
+  background: #e2e8f0;
+  color: #334155;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.complaint-content {
+  margin: 0;
+  color: #475569;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
