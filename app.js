@@ -131,3 +131,51 @@ document.getElementById("anonymousReportForm").addEventListener("submit", async 
   alert("익명 제보가 정상적으로 접수되었습니다.");
   document.getElementById("anonymousReportForm").reset();
 });
+document.getElementById("loadMyComplaintsBtn").addEventListener("click", async function () {
+  if (!currentUser) {
+    alert("먼저 로그인하세요.");
+    return;
+  }
+
+  const listEl = document.getElementById("myComplaintsList");
+  listEl.innerHTML = '<p class="help">불러오는 중...</p>';
+
+  const { data, error } = await supabaseClient
+    .from("complaints")
+    .select("*")
+    .eq("user_id", currentUser.id)
+    .eq("submission_type", "general")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error(error);
+    listEl.innerHTML = '<p class="help">내 접수내역을 불러오는 중 오류가 발생했습니다.</p>';
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    listEl.innerHTML = '<p class="help">접수된 내역이 없습니다.</p>';
+    return;
+  }
+
+  listEl.innerHTML = data.map(item => {
+    const anonymousText = item.is_anonymous ? "익명" : "실명";
+    const createdAt = item.created_at
+      ? new Date(item.created_at).toLocaleString("ko-KR")
+      : "-";
+
+    return `
+      <div class="complaint-item">
+        <h3>${item.title || ""}</h3>
+        <div class="complaint-meta">
+          <span>유형: ${item.category || "-"}</span>
+          <span>상태: ${item.status || "-"}</span>
+          <span>작성방식: ${anonymousText}</span>
+          <span>접수일시: ${createdAt}</span>
+        </div>
+        <p class="complaint-content">${item.content || ""}</p>
+        ${item.admin_comment ? `<p class="complaint-content"><strong>관리자 의견:</strong> ${item.admin_comment}</p>` : ""}
+      </div>
+    `;
+  }).join("");
+});
