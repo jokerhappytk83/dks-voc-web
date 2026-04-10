@@ -105,6 +105,8 @@ async function loadAllComplaints() {
         ? "익명"
         : (profileMap[item.user_id] || "이름확인불가");
 
+    const hiddenText = item.is_hidden ? "숨김됨" : "표시중";
+
     return `
       <div class="complaint-item">
         <h3>${item.title || ""}</h3>
@@ -112,24 +114,32 @@ async function loadAllComplaints() {
           <span>구분: ${submissionTypeText}</span>
           <span>유형: ${item.category || "-"}</span>
           <span>상태: ${item.status || "-"}</span>
+          <span>표시상태: ${hiddenText}</span>
           <span>접수일시: ${createdAt}</span>
           <span>작성자: ${writerName}</span>
         </div>
 
         <p class="complaint-content">${item.content || ""}</p>
 
+        <div style="margin-top:12px;">
+          <label>관리자 의견</label>
+          <textarea id="comment-${item.id}" rows="4" placeholder="관리자 의견을 입력하세요">${item.admin_comment || ""}</textarea>
+          <button type="button" onclick="saveAdminComment('${item.id}')">의견 저장</button>
+        </div>
+
         <div class="complaint-meta" style="margin-top:12px;">
           <select onchange="updateComplaintStatus('${item.id}', this.value)">
             <option value="">상태 변경</option>
-            <option value="접수됨">접수됨</option>
-            <option value="검토중">검토중</option>
-            <option value="조치완료">조치완료</option>
-            <option value="반려">반려</option>
-            <option value="숨김">숨김</option>
+            <option value="접수됨" ${item.status === "접수됨" ? "selected" : ""}>접수됨</option>
+            <option value="검토중" ${item.status === "검토중" ? "selected" : ""}>검토중</option>
+            <option value="조치완료" ${item.status === "조치완료" ? "selected" : ""}>조치완료</option>
+            <option value="반려" ${item.status === "반려" ? "selected" : ""}>반려</option>
+            <option value="숨김" ${item.status === "숨김" ? "selected" : ""}>숨김</option>
           </select>
-        </div>
 
-        ${item.admin_comment ? `<p class="complaint-content"><strong>관리자 의견:</strong> ${item.admin_comment}</p>` : ""}
+          <button type="button" onclick="hideComplaint('${item.id}')">숨김 처리</button>
+          <button type="button" onclick="unhideComplaint('${item.id}')">숨김 해제</button>
+        </div>
       </div>
     `;
   }).join("");
@@ -158,5 +168,84 @@ async function updateComplaintStatus(id, status) {
   }
 
   alert("상태가 변경되었습니다.");
+  await loadAllComplaints();
+}
+
+async function saveAdminComment(id) {
+  if (!currentAdmin) {
+    alert("먼저 관리자 로그인하세요.");
+    return;
+  }
+
+  const comment = document.getElementById(`comment-${id}`).value.trim();
+
+  const { error } = await supabaseClient
+    .from("complaints")
+    .update({
+      admin_comment: comment,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error(error);
+    alert("관리자 의견 저장 중 오류가 발생했습니다.");
+    return;
+  }
+
+  alert("관리자 의견이 저장되었습니다.");
+  await loadAllComplaints();
+}
+
+async function hideComplaint(id) {
+  if (!currentAdmin) {
+    alert("먼저 관리자 로그인하세요.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("complaints")
+    .update({
+      is_hidden: true,
+      status: "숨김",
+      hidden_at: new Date().toISOString(),
+      hidden_by: currentAdmin.admin_id,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error(error);
+    alert("숨김 처리 중 오류가 발생했습니다.");
+    return;
+  }
+
+  alert("숨김 처리되었습니다.");
+  await loadAllComplaints();
+}
+
+async function unhideComplaint(id) {
+  if (!currentAdmin) {
+    alert("먼저 관리자 로그인하세요.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("complaints")
+    .update({
+      is_hidden: false,
+      hidden_at: null,
+      hidden_by: null,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error(error);
+    alert("숨김 해제 중 오류가 발생했습니다.");
+    return;
+  }
+
+  alert("숨김 해제되었습니다.");
   await loadAllComplaints();
 }
