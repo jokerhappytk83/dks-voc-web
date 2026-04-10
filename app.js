@@ -145,6 +145,7 @@ document.getElementById("loadMyComplaintsBtn").addEventListener("click", async f
     .select("*")
     .eq("user_id", currentUser.id)
     .eq("submission_type", "general")
+    .eq("is_hidden", false)
     .order("created_at", { ascending: false });
 
   if (error) {
