@@ -97,3 +97,37 @@ document.getElementById("complaintForm").addEventListener("submit", async functi
   alert("고충이 정상적으로 접수되었습니다.");
   document.getElementById("complaintForm").reset();
 });
+document.getElementById("anonymousReportForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const reportCategory = document.getElementById("reportCategory").value;
+  const reportTitle = document.getElementById("reportTitle").value.trim();
+  const reportContent = document.getElementById("reportContent").value.trim();
+
+  if (!reportCategory || !reportTitle || !reportContent) {
+    alert("제보 유형, 제목, 내용을 모두 입력하세요.");
+    return;
+  }
+
+  const { error } = await supabaseClient.from("complaints").insert([
+    {
+      user_id: null,
+      title: reportTitle,
+      category: reportCategory,
+      content: reportContent,
+      is_anonymous: true,
+      status: "접수됨",
+      submission_type: "anonymous_report",
+      reporter_name: "익명"
+    }
+  ]);
+
+  if (error) {
+    console.error(error);
+    alert("익명 제보 저장 중 오류가 발생했습니다.");
+    return;
+  }
+
+  alert("익명 제보가 정상적으로 접수되었습니다.");
+  document.getElementById("anonymousReportForm").reset();
+});
