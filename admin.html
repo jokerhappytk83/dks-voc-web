@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>고충처리 관리자</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <h1>고충처리 관리자</h1>
+      <p>관리자 로그인 후 전체 접수 내역을 확인할 수 있습니다.</p>
+    </header>
+
+    <main class="grid">
+      <section class="card">
+        <h2>관리자 로그인</h2>
+        <form id="adminLoginForm">
+          <label>관리자 아이디</label>
+          <input type="text" id="adminId" placeholder="아이디 입력" />
+
+          <label>비밀번호</label>
+          <input type="password" id="adminPassword" placeholder="비밀번호 입력" />
+
+          <button type="submit">관리자 로그인</button>
+        </form>
+        <p class="help" id="adminLoginStatus">로그인이 필요합니다.</p>
+      </section>
+
+      <section class="card full">
+        <h2>전체 접수 목록</h2>
+        <button type="button" id="loadAllComplaintsBtn">전체 접수내역 불러오기</button>
+        <div id="adminComplaintsList" class="complaint-list">
+          <p class="help">관리자 로그인 후 전체 접수내역을 조회할 수 있습니다.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
